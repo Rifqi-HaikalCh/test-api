@@ -1,61 +1,62 @@
-// Vercel serverless function untuk Instagram API
-export default async function handler(req, res) {
-  // Enable CORS
-  res.setHeader('Access-Control-Allow-Credentials', true);
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+// File: /api/instagram_tools.js
+// Vercel serverless function untuk menggantikan Vite proxy
 
-  if (req.method === 'OPTIONS') {
-    return res.status(200).end();
+const axios = require('axios');
+
+export default async function handler(request, response) {
+  // Enable CORS untuk frontend
+  response.setHeader('Access-Control-Allow-Origin', '*');
+  response.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  response.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
+  if (request.method === 'OPTIONS') {
+    return response.status(200).end();
   }
 
-  if (req.method !== 'GET') {
-    return res.status(405).json({ error: 'Method not allowed' });
-  }
+  // Ambil username dari query parameter (contoh: ?username=dapurbuzzer)
+  const { username } = request.query;
 
-  const { username } = req.query;
-  
   if (!username) {
-    return res.status(400).json({ error: 'Username is required' });
+    return response.status(400).json({ message: 'Username is required' });
   }
 
   try {
-    // Ganti ini dengan API Instagram scraper yang kamu pake
-    // Contoh: rapidapi, apify, atau service lain
-    const response = await fetch(`https://instagram-scraper-api2.p.rapidapi.com/v1/info?username_or_id_or_url=${username}`, {
-      headers: {
-        'X-RapidAPI-Key': process.env.RAPIDAPI_KEY, // Set di Vercel env vars
-        'X-RapidAPI-Host': 'instagram-scraper-api2.p.rapidapi.com'
-      }
-    });
-
-    if (!response.ok) {
-      throw new Error(`API Error: ${response.status}`);
-    }
-
-    const apiData = await response.json();
+    const targetUrl = `https://sprintpedia.id/page/instagram_tools`;
     
-    // Format response sesuai yang dibutuhkan frontend
-    const formattedData = {
-      data: {
-        username: apiData.username || username,
-        full_name: apiData.full_name || 'N/A',
-        follower_count: apiData.follower_count || 0,
-        following_count: apiData.following_count || 0,
-        media_count: apiData.media_count || 0,
-        is_private: apiData.is_private || false,
-        spam_follower_setting_enabled: apiData.spam_follower_setting_enabled || false
-      }
+    // Siapkan header, sama seperti di vite.config.js
+    const headers = {
+      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+      'X-Requested-With': 'XMLHttpRequest',
+      // PENTING: Cookie valid harus diset di Environment Variables Vercel
+      'Cookie': process.env.SPRINTPEDIA_COOKIE || 'ci_session=MASUKKAN_COOKIE_VALID_DISINI'
     };
 
-    return res.status(200).json(formattedData);
-    
-  } catch (error) {
-    console.error('Instagram API Error:', error);
-    return res.status(500).json({ 
-      error: 'Failed to fetch Instagram data',
-      message: error.message 
+    // Lakukan request ke server sprintpedia
+    const apiResponse = await axios.get(targetUrl, {
+      params: { username },
+      headers: headers,
+      timeout: 10000 // 10 second timeout
     });
+
+    // Kirim kembali data JSON yang didapat dari sprintpedia ke frontend
+    return response.status(200).json(apiResponse.data);
+
+  } catch (error) {
+    console.error('API Error:', error.message);
+    
+    // Handle specific errors
+    if (error.code === 'ECONNABORTED') {
+      return response.status(408).json({ message: 'Request timeout' });
+    }
+    
+    if (error.response) {
+      return response.status(error.response.status).json({ 
+        message: 'Failed to fetch data from external API',
+        status: error.response.status
+      });
+    }
+    
+    // Tangani jika terjadi error umum
+    return response.status(500).json({ message: 'Failed to fetch data from external API.' });
   }
 }
