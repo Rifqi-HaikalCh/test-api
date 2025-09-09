@@ -1,7 +1,7 @@
 // File: /api/instagram_tools.js
 // Vercel serverless function untuk menggantikan Vite proxy
 
-const axios = require('axios');
+import axios from 'axios';
 
 export default async function handler(request, response) {
   // Enable CORS untuk frontend
