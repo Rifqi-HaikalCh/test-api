@@ -1,6 +1,3 @@
-// File: /api/instagram_tools.js
-// Vercel Serverless Function
-
 import axios from 'axios';
 
 export default async function handler(req, res) {
