@@ -19,7 +19,7 @@ export default defineConfig({
             console.log(`[Vite Proxy] Mengirim request ke: ${proxyReq.host}${proxyReq.path}`);
           });
 
-          // BAGIAN BARU: Laporkan apa yang dikirim kembali oleh server
+          // BAGIAN BARU: return apa yang dikirim kembali oleh server
           proxy.on('proxyRes', (proxyRes) => {
             console.log(`[Vite Proxy] Menerima respons dengan status: ${proxyRes.statusCode}`);
             if (proxyRes.headers.location) {

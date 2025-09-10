@@ -1,8 +1,3 @@
-/**
- * Instagram Profile Inspector - dibuat oleh [Nama Anda]
- * Aplikasi React.js untuk melihat profil Instagram
- */
-
 import styled from 'styled-components';
 import ProfileInspector from "./components/organisms/ProfileInspector.jsx";
 
@@ -24,7 +19,6 @@ function App() {
   return (
     <ContainerAplikasi>
       {/* Cuma ada satu component utama aja - ProfileInspector */}
-      {/* Design-nya minimalis, fokus ke functionality */}
       <ProfileInspector />
     </ContainerAplikasi>
   );
